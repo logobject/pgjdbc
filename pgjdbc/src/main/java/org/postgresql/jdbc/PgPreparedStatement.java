@@ -1494,7 +1494,16 @@ class PgPreparedStatement extends PgStatement implements PreparedStatement {
     if (cal == null) {
       cal = getDefaultCalendar();
     }
-    bindString(i, getTimestampUtils().toString(cal, t), oid);
+    
+    /** 
+     * In a general call, according to java type definition, we want to have TIMESTAMPTZ.
+     * Timestamp are not reliable, information on timezone is lost and timestamp does not represent a point in time like java timestamp.
+     * In the following method we always pass timezone information.
+     * Is than on postgres site to choose the correct conversion.
+     * This yes, will create a conversion timestamptz -> timestamp,
+     * but as written before that should not be the normality cause Timestamp without timezone should be in generally avoided. 
+     */
+    bindString(i, getTimestampUtils().toString(cal, t), Oid.TIMESTAMPTZ);
   }
 
   private void setDate(@Positive int i, LocalDate localDate) throws SQLException {
